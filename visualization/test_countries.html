@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Country Matching Test</title>
+    <script src="d3.v7.min.js"></script>
+</head>
+
+<body>
+    <h1>Country Matching Test</h1>
+    <div id="results"></div>
+
+    <script>
+        // Sample data
+        const sampleData = {
+            "countries": {
+                "Kenya": { "mentions": 1 },
+                "India": { "mentions": 1 },
+                "Japan": { "mentions": 1 },
+                "Netherlands": { "mentions": 1 },
+                "United States": { "mentions": 1 }
+            }
+        };
+
+        // Country name mapping
+        const countryNameMapping = {
+            "Kenya": "Kenya",
+            "India": "India",
+            "Japan": "Japan",
+            "Netherlands": "Netherlands",
+            "United States": "USA",
+            "USA": "USA",
+            "US": "USA"
+        };
+
+        // Test country matching
+        function testCountryMatching() {
+            const testCountries = ["Kenya", "India", "Japan", "Netherlands", "USA"];
+            const results = document.getElementById('results');
+
+            results.innerHTML = '<h2>Country Matching Results:</h2>';
+
+            testCountries.forEach(geoJsonName => {
+                let countryData = null;
+                let matchedName = null;
+
+                // First try direct match
+                if (sampleData.countries[geoJsonName]) {
+                    countryData = sampleData.countries[geoJsonName];
+                    matchedName = geoJsonName;
+                } else {
+                    // Try reverse mapping
+                    for (const [dataName, geoName] of Object.entries(countryNameMapping)) {
+                        if (geoName === geoJsonName && sampleData.countries[dataName]) {
+                            countryData = sampleData.countries[dataName];
+                            matchedName = dataName;
+                            break;
+                        }
+                    }
+                }
+
+                const status = countryData ? '✅' : '❌';
+                const mentions = countryData ? countryData.mentions : 0;
+
+                results.innerHTML += `<p>${status} ${geoJsonName} -> ${matchedName || 'No match'} (${mentions} mentions)</p>`;
+            });
+        }
+
+        // Run test
+        testCountryMatching();
+    </script>
+</body>
+
+</html>

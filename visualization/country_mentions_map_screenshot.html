@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Country Mentions in 8.9k Articles</title>
+    <script src="d3.v7.min.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+
+        .main-content {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+
+        .map-section {
+            flex: 1;
+        }
+
+        .sidebar {
+            width: 300px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid #e9ecef;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+
+        .map-container {
+            position: relative;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .country {
+            fill: #e0e0e0;
+            stroke: #fff;
+            stroke-width: 0.5;
+        }
+
+        .country.mentioned {
+            stroke: #fff;
+            stroke-width: 0.5;
+        }
+
+
+        .legend {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 15px;
+            border: 1px solid #ccc;
+        }
+
+        .stats {
+            margin-top: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .stat-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+        }
+
+        .error {
+            text-align: center;
+            padding: 50px;
+            color: #d32f2f;
+            background: #ffebee;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .data-source {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .sidebar h3 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+
+        .country-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .country-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .country-item:last-child {
+            border-bottom: none;
+        }
+
+        .country-name {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .country-mentions {
+            background: #007bff;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            min-width: 30px;
+            text-align: center;
+        }
+
+        .country-item:hover {
+            background: #e9ecef;
+            border-radius: 4px;
+            padding-left: 8px;
+            padding-right: 8px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Country Mentions in 8.9k Article Titles</h1>
+        <div class="data-source" id="dataSource">Loading data...</div>
+
+        <div class="main-content">
+            <div class="map-section">
+                <div class="map-container">
+                    <div class="loading" id="loading">Loading map data...</div>
+                    <svg id="map" style="display: none;"></svg>
+                </div>
+
+                <div class="legend" id="legend"></div>
+
+                <div class="stats" id="stats"></div>
+            </div>
+
+            <div class="sidebar">
+                <h3>Top Countries</h3>
+                <ul class="country-list" id="topCountries">
+                    <li class="loading">Loading...</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sample data from your analysis with varying mention counts for testing
+        const sampleData = {
+            "total_articles": 8,
+            "articles_analyzed": 8,
+            "countries": {
+                "Kenya": {
+                    "mentions": 1,
+                    "articles": [
+                        {
+                            "article_id": 1689,
+                            "title": "كيث بيكماير: انتصار قضائي يكشف عن ضعف النظام المؤسسي في كينيا",
+                            "url": "https://dzinfo.org/article/ky-bykmayr-antsar-qdayy-ykshf-an-daf-alnzam-almwssy-fy-kynya",
+                            "site_name": "https://dzinfo.org",
+                            "entity_name": "Kenya",
+                            "entity_type": "country"
+                        }
+                    ],
+                    "continent": "Africa",
+                    "cities": []
+                },
+                "India": {
+                    "mentions": 3,
+                    "articles": [
+                        {
+                            "article_id": 5853,
+                            "title": "भारत-जापान आर्थिक सहयोग: उत्तर प्रदेश में नए औद्योगिक क्षितिज का उदय",
+                            "url": "https://ashokavoice.com/article/--1753337241232",
+                            "site_name": "https://ashokavoice.com",
+                            "entity_name": "India",
+                            "entity_type": "country"
+                        },
+                        {
+                            "article_id": 5854,
+                            "title": "India Economic Growth Report",
+                            "url": "https://example.com/india-growth",
+                            "site_name": "https://example.com",
+                            "entity_name": "India",
+                            "entity_type": "country"
+                        },
+                        {
+                            "article_id": 5855,
+                            "title": "India Technology Sector",
+                            "url": "https://example.com/india-tech",
+                            "site_name": "https://example.com",
+                            "entity_name": "India",
+                            "entity_type": "country"
+                        }
+                    ],
+                    "continent": "Asia",
+                    "cities": []
+                },
+                "Japan": {
+                    "mentions": 2,
+                    "articles": [
+                        {
+                            "article_id": 5853,
+                            "title": "भारत-जापान आर्थिक सहयोग: उत्तर प्रदेश में नए औद्योगिक क्षितिज का उदय",
+                            "url": "https://ashokavoice.com/article/--1753337241232",
+                            "site_name": "https://ashokavoice.com",
+                            "entity_name": "Japan",
+                            "entity_type": "country"
+                        },
+                        {
+                            "article_id": 5856,
+                            "title": "Japan Technology Innovation",
+                            "url": "https://example.com/japan-tech",
+                            "site_name": "https://example.com",
+                            "entity_name": "Japan",
+                            "entity_type": "country"
+                        }
+                    ],
+                    "continent": "Asia",
+                    "cities": []
+                },
+                "Netherlands": {
+                    "mentions": 1,
+                    "articles": [
+                        {
+                            "article_id": 4582,
+                            "title": "Wisselend weer in Breda: mix van zon en buien deze week",
+                            "url": "https://openstad.com/article/wisselend-weer-in-breda-mix-van-zon-en-buien-deze-week",
+                            "site_name": "https://openstad.com",
+                            "entity_name": "Breda",
+                            "entity_type": "city"
+                        }
+                    ],
+                    "continent": "Europe",
+                    "cities": [
+                        "Breda"
+                    ]
+                },
+                "United States": {
+                    "mentions": 4,
+                    "articles": [
+                        {
+                            "article_id": 7912,
+                            "title": "Newsom Desafía a Trump: La Batalla por la Justicia Social en EE.UU.",
+                            "url": "https://elpulsopopular.com/article/newsom-desafia-a-trump-la-batalla-por-la-justicia-social-en-eeuu",
+                            "site_name": "https://elpulsopopular.com",
+                            "entity_name": "United States",
+                            "entity_type": "country"
+                        },
+                        {
+                            "article_id": 7913,
+                            "title": "US Economic Policy Update",
+                            "url": "https://example.com/us-economy",
+                            "site_name": "https://example.com",
+                            "entity_name": "United States",
+                            "entity_type": "country"
+                        },
+                        {
+                            "article_id": 7914,
+                            "title": "US Technology Sector Growth",
+                            "url": "https://example.com/us-tech",
+                            "site_name": "https://example.com",
+                            "entity_name": "United States",
+                            "entity_type": "country"
+                        },
+                        {
+                            "article_id": 7915,
+                            "title": "US Political Landscape",
+                            "url": "https://example.com/us-politics",
+                            "site_name": "https://example.com",
+                            "entity_name": "United States",
+                            "entity_type": "country"
+                        }
+                    ],
+                    "continent": "North America",
+                    "cities": []
+                }
+            }
+        };
+
+        // Configuration
+        const width = 1000;
+        const height = 600;
+        const projection = d3.geoNaturalEarth1()
+            .scale(150)
+            .translate([width / 2, height / 2]);
+
+        const path = d3.geoPath().projection(projection);
+
+        // Create SVG
+        const svg = d3.select("#map")
+            .attr("width", width)
+            .attr("height", height);
+
+        // Global variable to store the data
+        let analysisData = null;
+
+        // Country name mapping from your data to GeoJSON names
+        const countryNameMapping = {
+            "Kenya": "Kenya",
+            "India": "India",
+            "Japan": "Japan",
+            "Netherlands": "Netherlands",
+            "United States": "USA", // GeoJSON uses "USA"
+            "USA": "USA",
+            "US": "USA"
+        };
+
+        // Check if D3 is loaded
+        if (typeof d3 === 'undefined') {
+            document.getElementById('loading').innerHTML = '<div class="error">Error: D3.js library failed to load. Please check your internet connection.</div>';
+        } else {
+            // Load your actual analysis data
+            loadAnalysisData();
+        }
+
+        async function loadAnalysisData() {
+            try {
+                // Try to load your actual data first
+                const response = await fetch('geo_analysis.json');
+                if (response.ok) {
+                    analysisData = await response.json();
+                    document.getElementById('dataSource').textContent = 'Based on city and country names found across all articles, extracted using a LLM.';
+                } else {
+                    throw new Error('Could not load geo_analysis.json');
+                }
+            } catch (error) {
+                // Fallback to sample data
+                analysisData = sampleData;
+                document.getElementById('dataSource').textContent = 'Data source: Sample data (fallback)';
+            }
+
+            // Now load the map
+            loadMap();
+        }
+
+        function loadMap() {
+            // Color scale for mentions - using a more distinct color scheme
+            const maxMentions = Math.max(...Object.values(analysisData.countries).map(c => c.mentions));
+
+            // Create a color scale that works with the larger dataset
+            // Use a continuous scale for better visualization of the wide range
+            const colorScale = d3.scaleSequential(d3.interpolateBlues)
+                .domain([0, maxMentions]);
+
+            // Load world map data
+            d3.json("countries-110m.json")
+                .then(function (world) {
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('map').style.display = 'block';
+
+                    const countries = world; // This is already GeoJSON
+
+                    // Draw countries
+                    const countryPaths = svg.selectAll(".country")
+                        .data(countries.features)
+                        .enter().append("path")
+                        .attr("class", "country")
+                        .attr("d", path)
+                        .attr("fill", d => {
+                            const geoJsonName = d.properties.name;
+
+                            // Direct match
+                            if (analysisData.countries[geoJsonName]) {
+                                const mentions = analysisData.countries[geoJsonName].mentions;
+                                const color = colorScale(mentions);
+                                return color;
+                            }
+
+                            // Special case for United States -> USA
+                            if (geoJsonName === 'USA' && analysisData.countries['USA']) {
+                                const mentions = analysisData.countries['USA'].mentions;
+                                const color = colorScale(mentions);
+                                return color;
+                            }
+
+                            return "#e0e0e0";
+                        });
+
+                    // Add mentioned class to countries with data and apply color based on mention count
+                    countryPaths.filter(d => {
+                        const geoJsonName = d.properties.name;
+                        return analysisData.countries[geoJsonName] ||
+                            (geoJsonName === 'USA' && analysisData.countries['USA']);
+                    }).each(function (d) {
+                        const geoJsonName = d.properties.name;
+                        let mentions = 0;
+
+                        if (analysisData.countries[geoJsonName]) {
+                            mentions = analysisData.countries[geoJsonName].mentions;
+                        } else if (geoJsonName === 'USA' && analysisData.countries['USA']) {
+                            mentions = analysisData.countries['USA'].mentions;
+                        }
+
+                        // Add base mentioned class
+                        d3.select(this).classed('mentioned', true);
+
+                        // Apply color directly as well
+                        const color = colorScale(mentions);
+                        d3.select(this).style('fill', color);
+                        d3.select(this).style('stroke', '#fff');
+                        d3.select(this).style('stroke-width', '0.5px');
+                    });
+
+                    // Create legend
+                    createLegend(colorScale);
+
+                    // Create statistics
+                    createStats();
+
+                    // Create top countries list
+                    createTopCountriesList();
+                })
+                .catch(function (error) {
+                    document.getElementById('loading').innerHTML = '<div class="error">Error loading map data. Please check your internet connection and try again.</div>';
+                });
+        }
+
+        function createLegend(colorScale) {
+            const legend = d3.select("#legend");
+            const maxMentions = Math.max(...Object.values(analysisData.countries).map(c => c.mentions));
+
+            // Create legend with rounded, intuitive values
+            const roundedValues = [0, 50, 100, 200, 500];
+            let legendValues = roundedValues.filter(val => val <= maxMentions);
+
+            // If max is close to 500 (within 50), include 500 in legend
+            if (maxMentions >= 450 && maxMentions < 500) {
+                if (!legendValues.includes(500)) {
+                    legendValues.push(500);
+                }
+            }
+
+            // Add the max value if it's not already included and it's significantly higher than 500
+            if (maxMentions > 500 && !legendValues.includes(maxMentions)) {
+                legendValues.push(maxMentions);
+            }
+
+            const legendData = legendValues.map(value => ({
+                value: value,
+                color: colorScale(value)
+            }));
+
+            legend.selectAll(".legend-item")
+                .data(legendData)
+                .enter().append("div")
+                .attr("class", "legend-item")
+                .html(d => `
+                    <div class="legend-color" style="background-color: ${d.color}"></div>
+                    <span>${d.value} mention${d.value !== 1 ? 's' : ''}</span>
+                `);
+        }
+
+        function createStats() {
+            const stats = d3.select("#stats");
+            const totalCountries = Object.keys(analysisData.countries).length;
+            const totalMentions = Object.values(analysisData.countries).reduce((sum, c) => sum + c.mentions, 0);
+            const continents = [...new Set(Object.values(analysisData.countries).map(c => c.continent))];
+
+            stats.html(`
+                <div class="stat-card">
+                    <div class="stat-number">${analysisData.total_articles}</div>
+                    <div class="stat-label">Total Articles</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${totalCountries}</div>
+                    <div class="stat-label">Countries Mentioned</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${totalMentions}</div>
+                    <div class="stat-label">Total Mentions</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${continents.length}</div>
+                    <div class="stat-label">Continents</div>
+                </div>
+            `);
+        }
+
+        function createTopCountriesList() {
+            const topCountriesList = d3.select("#topCountries");
+
+            // Clear existing content
+            topCountriesList.selectAll("*").remove();
+
+            // Sort countries by mention count (descending) and take top 15
+            const sortedCountries = Object.entries(analysisData.countries)
+                .sort(([, a], [, b]) => b.mentions - a.mentions)
+                .slice(0, 15);
+
+            topCountriesList.selectAll("li")
+                .data(sortedCountries)
+                .enter()
+                .append("li")
+                .attr("class", "country-item")
+                .html(d => {
+                    // Convert country names for better readability
+                    let displayName = d[0];
+                    if (d[0] === "USA") {
+                        displayName = "United States";
+                    } else if (d[0] === "West Bank") {
+                        displayName = "Palestine";
+                    }
+                    return `
+                        <span class="country-name">${displayName}</span>
+                        <span class="country-mentions">${d[1].mentions}</span>
+                    `;
+                });
+        }
+    </script>
+</body>
+
+</html>

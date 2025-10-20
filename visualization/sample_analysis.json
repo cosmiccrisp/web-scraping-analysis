@@ -1,0 +1,83 @@
+{
+  "total_articles": 5,
+  "articles_analyzed": 5,
+  "countries": {
+    "Kenya": {
+      "mentions": 1,
+      "articles": [
+        {
+          "article_id": 1689,
+          "title": "كيث بيكماير: انتصار قضائي يكشف عن ضعف النظام المؤسسي في كينيا",
+          "url": "https://dzinfo.org/article/ky-bykmayr-antsar-qdayy-ykshf-an-daf-alnzam-almwssy-fy-kynya",
+          "site_name": "https://dzinfo.org",
+          "entity_name": "Kenya",
+          "entity_type": "country"
+        }
+      ],
+      "continent": "Africa",
+      "cities": []
+    },
+    "India": {
+      "mentions": 1,
+      "articles": [
+        {
+          "article_id": 5853,
+          "title": "भारत-जापान आर्थिक सहयोग: उत्तर प्रदेश में नए औद्योगिक क्षितिज का उदय",
+          "url": "https://ashokavoice.com/article/--1753337241232",
+          "site_name": "https://ashokavoice.com",
+          "entity_name": "India",
+          "entity_type": "country"
+        }
+      ],
+      "continent": "Asia",
+      "cities": []
+    },
+    "Japan": {
+      "mentions": 1,
+      "articles": [
+        {
+          "article_id": 5853,
+          "title": "भारत-जापान आर्थिक सहयोग: उत्तर प्रदेश में नए औद्योगिक क्षितिज का उदय",
+          "url": "https://ashokavoice.com/article/--1753337241232",
+          "site_name": "https://ashokavoice.com",
+          "entity_name": "Japan",
+          "entity_type": "country"
+        }
+      ],
+      "continent": "Asia",
+      "cities": []
+    },
+    "Netherlands": {
+      "mentions": 1,
+      "articles": [
+        {
+          "article_id": 4582,
+          "title": "Wisselend weer in Breda: mix van zon en buien deze week",
+          "url": "https://openstad.com/article/wisselend-weer-in-breda-mix-van-zon-en-buien-deze-week",
+          "site_name": "https://openstad.com",
+          "entity_name": "Breda",
+          "entity_type": "city"
+        }
+      ],
+      "continent": "Europe",
+      "cities": [
+        "Breda"
+      ]
+    },
+    "United States": {
+      "mentions": 1,
+      "articles": [
+        {
+          "article_id": 7912,
+          "title": "Newsom Desafía a Trump: La Batalla por la Justicia Social en EE.UU.",
+          "url": "https://elpulsopopular.com/article/newsom-desafia-a-trump-la-batalla-por-la-justicia-social-en-eeuu",
+          "site_name": "https://elpulsopopular.com",
+          "entity_name": "United States",
+          "entity_type": "country"
+        }
+      ],
+      "continent": "North America",
+      "cities": []
+    }
+  }
+}

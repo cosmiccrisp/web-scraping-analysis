@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Test D3 Loading</title>
+    <script src="d3.v7.min.js"></script>
+    <script src="topojson.v3.min.js"></script>
+</head>
+
+<body>
+    <h1>D3.js Test</h1>
+    <div id="test"></div>
+
+    <script>
+        // Test if D3 loaded
+        if (typeof d3 !== 'undefined') {
+            document.getElementById('test').innerHTML = '<p style="color: green;">✅ D3.js loaded successfully!</p>';
+            console.log('D3 version:', d3.version);
+        } else {
+            document.getElementById('test').innerHTML = '<p style="color: red;">❌ D3.js failed to load</p>';
+        }
+
+        // Test if TopoJSON loaded
+        if (typeof topojson !== 'undefined') {
+            document.getElementById('test').innerHTML += '<p style="color: green;">✅ TopoJSON loaded successfully!</p>';
+        } else {
+            document.getElementById('test').innerHTML += '<p style="color: red;">❌ TopoJSON failed to load</p>';
+        }
+
+        // Test data loading
+        fetch('sample_analysis.json')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('test').innerHTML += '<p style="color: green;">✅ Data file loaded successfully!</p>';
+                console.log('Data loaded:', data);
+            })
+            .catch(error => {
+                document.getElementById('test').innerHTML += '<p style="color: red;">❌ Data file failed to load: ' + error.message + '</p>';
+                console.error('Data loading error:', error);
+            });
+    </script>
+</body>
+
+</html>
